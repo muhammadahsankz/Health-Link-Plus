@@ -22,4 +22,15 @@ class AppUrls {
   static const String saveClinicData = "${baseUrl}doctor/save-clinic-data";
   static const String getAllDoctorsListForPatient =
       "${baseUrl}patient/get-all-doctors-list-for-patient";
+  static const String requestAnAppointment =
+      "${baseUrl}patient/request-an-appointment";
+  static const String getPatientAppointmentsList =
+      "${baseUrl}patient/get-patient-appointments";
+  static const String getDoctorAppointmentsList =
+      "${baseUrl}doctor/get-doctor-appointments";
+  static const String acceptAppointment = "${baseUrl}doctor/accept-appointment";
+  static const String createMeeting = '${baseUrl}zoom/create';
+  static const String generateSignature = '${baseUrl}zoom/signature';
+  static const String getMeetingDetails =
+      '${baseUrl}patient/get-meeting-details';
 }

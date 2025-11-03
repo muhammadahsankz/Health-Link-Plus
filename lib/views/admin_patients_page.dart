@@ -12,12 +12,22 @@ class AdminPatientsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Search Field
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: TextField(
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Patients",
+            style: TextStyle(
+              color: AppColors.blue,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Search Field
+          TextField(
             controller: searchController,
             decoration: InputDecoration(
               hintText: "Search patients by name",
@@ -32,30 +42,30 @@ class AdminPatientsPage extends StatelessWidget {
               controller.filterPatients(query);
             },
           ),
-        ),
+          const SizedBox(height: 10),
+          // List of patients
+          Expanded(
+            child: Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-        // List of patients
-        Expanded(
-          child: Obx(() {
-            if (controller.isLoading.value) {
-              return const Center(child: CircularProgressIndicator());
-            }
+              if (controller.filteredPatients.isEmpty) {
+                return _buildEmptyState("No patients found");
+              }
 
-            if (controller.filteredPatients.isEmpty) {
-              return _buildEmptyState("No patients found");
-            }
-
-            return ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: controller.filteredPatients.length,
-              itemBuilder: (context, index) {
-                final patient = controller.filteredPatients[index];
-                return _buildPatientCard(patient);
-              },
-            );
-          }),
-        ),
-      ],
+              return ListView.builder(
+                // padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: controller.filteredPatients.length,
+                itemBuilder: (context, index) {
+                  final patient = controller.filteredPatients[index];
+                  return _buildPatientCard(patient);
+                },
+              );
+            }),
+          ),
+        ],
+      ),
     );
   }
 

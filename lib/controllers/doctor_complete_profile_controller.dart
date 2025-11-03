@@ -7,6 +7,7 @@ import 'package:health_link_plus/utils/app_urls.dart';
 import 'package:health_link_plus/widgets/toast_widget.dart';
 
 class DoctorCompleteProfileController extends GetxController {
+  // Observables
   var specialization = ''.obs;
   var phone = ''.obs;
   var experience = ''.obs;
@@ -15,13 +16,40 @@ class DoctorCompleteProfileController extends GetxController {
   var age = ''.obs;
   var bio = ''.obs;
 
+  // Controllers
+  late TextEditingController specializationController;
+  late TextEditingController phoneController;
+  late TextEditingController experienceController;
+  late TextEditingController qualificationsController;
+  late TextEditingController ageController;
+  late TextEditingController bioController;
+
   var isLoading = false.obs;
   var isFetching = false.obs;
 
   @override
   void onInit() {
     super.onInit();
+
+    specializationController = TextEditingController();
+    phoneController = TextEditingController();
+    experienceController = TextEditingController();
+    qualificationsController = TextEditingController();
+    ageController = TextEditingController();
+    bioController = TextEditingController();
+
     fetchDoctorProfile();
+  }
+
+  @override
+  void onClose() {
+    specializationController.dispose();
+    phoneController.dispose();
+    experienceController.dispose();
+    qualificationsController.dispose();
+    ageController.dispose();
+    bioController.dispose();
+    super.onClose();
   }
 
   Future<void> fetchDoctorProfile() async {
@@ -46,9 +74,15 @@ class DoctorCompleteProfileController extends GetxController {
           gender.value = doctor['gender'] ?? '';
           age.value = doctor['age'] ?? '';
           bio.value = doctor['bio'] ?? '';
+
+          // Sync with controllers
+          specializationController.text = specialization.value;
+          phoneController.text = phone.value;
+          experienceController.text = experience.value;
+          qualificationsController.text = qualifications.value;
+          ageController.text = age.value;
+          bioController.text = bio.value;
         }
-      } else {
-        debugPrint("Failed to fetch doctor details");
       }
     } catch (e) {
       debugPrint("Error fetching profile: $e");

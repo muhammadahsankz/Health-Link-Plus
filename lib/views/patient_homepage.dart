@@ -16,7 +16,7 @@ class PatientHomepage extends StatelessWidget {
     final pages = [
       // _DashboardSection(controller),
       PatientFindDoctorsPage(),
-      PatientAppointmentPage(controller: controller),
+      PatientAppointmentsPage(),
       const ProfilePage(),
     ];
 

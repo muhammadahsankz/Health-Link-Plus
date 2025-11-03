@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:health_link_plus/controllers/patient_find_doctors_controller.dart';
 import 'package:health_link_plus/utils/app_colors.dart';
+import 'package:health_link_plus/widgets/button_widget.dart';
 
 class PatientFindDoctorsPage extends StatelessWidget {
   PatientFindDoctorsPage({super.key});
@@ -11,7 +12,7 @@ class PatientFindDoctorsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      // backgroundColor: Colors.grey.shade100,
       body: SafeArea(
         child: SingleChildScrollView(
           key: const ValueKey('FindDoctors'),
@@ -23,7 +24,7 @@ class PatientFindDoctorsPage extends StatelessWidget {
                 "Find Doctors",
                 style: TextStyle(
                   color: AppColors.blue,
-                  fontSize: 26,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -37,7 +38,7 @@ class PatientFindDoctorsPage extends StatelessWidget {
                   hintText: "Search by name or specialization",
                   prefixIcon: const Icon(Icons.search),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Colors.grey.shade200,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide.none,
@@ -261,25 +262,12 @@ class PatientFindDoctorsPage extends StatelessWidget {
 
                             const SizedBox(height: 12),
                             Center(
-                              child: ElevatedButton.icon(
+                              child: ButtonWidget(
+                                text: 'Request an Appointment',
+                                isLoading:
+                                    controller.isRequestAppointmentLoading,
                                 onPressed: () =>
-                                    controller.bookAppointment(doctor),
-                                icon: const Icon(
-                                  Icons.calendar_today,
-                                  size: 18,
-                                ),
-                                label: const Text("Request an Appointment"),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.blue,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 10,
-                                  ),
-                                ),
+                                    controller.requestAnAppointment(doctor),
                               ),
                             ),
                           ],

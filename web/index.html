@@ -2,19 +2,6 @@
 <html>
 
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
@@ -35,7 +22,176 @@
 </head>
 
 <body>
+  <!-- Zoom will inject its video UI here -->
+  <div id="zmmtg-root"></div>
+  <div id="aria-notify-area"></div>
+
+  <!-- Flutter bootstrap -->
   <script src="flutter_bootstrap.js" async></script>
+
+  <!-- ✅ Zoom Web Meeting SDK v2.13.0 (Stable) -->
+  <script src="https://source.zoom.us/2.13.0/lib/vendor/react.min.js"></script>
+  <script src="https://source.zoom.us/2.13.0/lib/vendor/react-dom.min.js"></script>
+  <script src="https://source.zoom.us/2.13.0/lib/vendor/redux.min.js"></script>
+  <script src="https://source.zoom.us/2.13.0/lib/vendor/redux-thunk.min.js"></script>
+  <script src="https://source.zoom.us/2.13.0/lib/vendor/lodash.min.js"></script>
+  <script src="https://source.zoom.us/zoom-meeting-2.13.0.min.js"></script>
+
+  <script>
+    // Global variable to track meeting state
+    window.zoomMeetingState = {
+      isInitialized: false,
+      isJoining: false,
+      hasJoined: false
+    };
+
+    // Function to check if Zoom SDK is ready
+    function waitForZoomSDK(callback, maxWaitTime = 10000) {
+      const startTime = Date.now();
+
+      function checkZoom() {
+        if (typeof ZoomMtg !== 'undefined') {
+          console.log("✅ Zoom SDK is ready");
+          callback(true);
+        } else if (Date.now() - startTime < maxWaitTime) {
+          setTimeout(checkZoom, 100);
+        } else {
+          console.error("❌ Zoom SDK failed to load within timeout");
+          callback(false);
+        }
+      }
+
+      checkZoom();
+    }
+
+    // ✅ CORRECT EVENT HANDLING FOR v2.13.0
+    function setupZoomEventHandlers() {
+      // In v2.13.0, events are handled through specific callback properties
+      console.log("🔧 Setting up Zoom event handlers for v2.13.0");
+
+      // Meeting status handler
+      if (typeof ZoomMtg.inMeetingServiceListener !== 'undefined') {
+        // Alternative approach for v2.13.0
+        console.log("📊 Using inMeetingServiceListener");
+      }
+    }
+
+    async function startZoomMeeting(meetingNumber, userName, userEmail, passWord, signature, sdkKey) {
+      console.log("🎬 Starting Zoom Meeting with:", meetingNumber);
+
+      // Wait for Zoom SDK to be ready
+      waitForZoomSDK(function (success) {
+        if (!success) {
+          console.error("❌ Zoom SDK not available");
+          if (window.onZoomMeetingError) {
+            window.onZoomMeetingError("Zoom SDK failed to load");
+          }
+          return;
+        }
+
+        try {
+          // Initialize Zoom SDK
+          ZoomMtg.setZoomJSLib("https://source.zoom.us/2.13.0/lib", "/av");
+          ZoomMtg.preLoadWasm();
+          ZoomMtg.prepareWebSDK();
+
+          // ✅ SIMPLE APPROACH: Rely on join success callback and manual timeout
+          console.log("🔧 Using simple event handling for v2.13.0");
+
+          // Initialize and join meeting
+          ZoomMtg.init({
+            leaveUrl: window.location.origin,
+            success: function () {
+              console.log("✅ Zoom SDK initialized successfully");
+              window.zoomMeetingState.isInitialized = true;
+
+              // Join the meeting
+              ZoomMtg.join({
+                meetingNumber: meetingNumber,
+                userName: userName,
+                userEmail: userEmail,
+                passWord: passWord || '',
+                sdkKey: sdkKey,
+                signature: signature,
+                success: function (res) {
+                  console.log("✅ Join meeting success:", res);
+                  window.zoomMeetingState.hasJoined = true;
+
+                  // Notify Flutter that meeting has started
+                  if (window.onZoomMeetingJoined) {
+                    console.log("📡 Notifying Flutter: meeting joined successfully");
+                    setTimeout(() => {
+                      window.onZoomMeetingJoined();
+                    }, 2000); // Small delay to ensure meeting is fully loaded
+                  }
+                },
+                error: function (err) {
+                  console.error("❌ Join meeting error:", err);
+                  window.zoomMeetingState.hasJoined = false;
+                  if (window.onZoomMeetingError) {
+                    window.onZoomMeetingError("Failed to join meeting: " + JSON.stringify(err));
+                  }
+                }
+              });
+            },
+            error: function (err) {
+              console.error("❌ Zoom SDK initialization error:", err);
+              if (window.onZoomMeetingError) {
+                window.onZoomMeetingError("SDK initialization failed: " + JSON.stringify(err));
+              }
+            }
+          });
+
+          // ✅ ALTERNATIVE: Try to use the meeting status callback if available
+          if (typeof ZoomMtg.inMeetingServiceListener === 'function') {
+            ZoomMtg.inMeetingServiceListener('onMeetingStatus', (data) => {
+              console.log("📊 Meeting Status (legacy):", data);
+              if (data === "MEETING_STATUS_INMEETING") {
+                window.zoomMeetingState.hasJoined = true;
+                if (window.onZoomMeetingJoined) {
+                  window.onZoomMeetingJoined();
+                }
+              }
+            });
+          }
+
+        } catch (error) {
+          console.error("❌ Unexpected error:", error);
+          if (window.onZoomMeetingError) {
+            window.onZoomMeetingError("Unexpected error: " + error.message);
+          }
+        }
+      });
+    }
+
+    // Function to leave meeting
+    function leaveZoomMeeting() {
+      if (typeof ZoomMtg !== 'undefined') {
+        ZoomMtg.leaveMeeting();
+        window.zoomMeetingState.hasJoined = false;
+        console.log("📞 Leaving Zoom meeting");
+
+        // Notify Flutter that meeting ended
+        if (window.onZoomMeetingEnded) {
+          window.onZoomMeetingEnded();
+        }
+      }
+    }
+
+    // Function to check if meeting has joined
+    function checkIfMeetingJoined() {
+      return window.zoomMeetingState.hasJoined;
+    }
+
+    // Function to manually trigger joined state (for debugging)
+    function manualMeetingJoined() {
+      console.log("🔧 Manually triggering meeting joined");
+      window.zoomMeetingState.hasJoined = true;
+      if (window.onZoomMeetingJoined) {
+        window.onZoomMeetingJoined();
+      }
+    }
+  </script>
 </body>
 
 </html>

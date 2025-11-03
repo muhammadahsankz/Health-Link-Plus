@@ -13,23 +13,11 @@ class DoctorAddClinicPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final nameController = TextEditingController();
-    final addressController = TextEditingController();
-    final contactController = TextEditingController();
-    final cityController = TextEditingController();
-    final notesController = TextEditingController();
-
     return Scaffold(
       body: Obx(() {
         if (controller.isFetching.value) {
           return const Center(child: CircularProgressIndicator());
         }
-
-        nameController.text = controller.clinicName.value;
-        addressController.text = controller.clinicAddress.value;
-        contactController.text = controller.clinicContact.value;
-        cityController.text = controller.clinicCity.value;
-        notesController.text = controller.clinicNotes.value;
 
         return SingleChildScrollView(
           controller: scrollController,
@@ -43,72 +31,57 @@ class DoctorAddClinicPage extends StatelessWidget {
                   "Add Clinic",
                   style: TextStyle(
                     color: AppColors.blue,
-                    fontSize: 26,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 20),
 
-                // 🩺 Clinic Name
                 _buildTextFormField(
                   "Clinic Name",
-                  nameController,
-                  onChanged: (v) => controller.clinicName.value = v,
+                  controller.nameController,
                   validator: (v) => v == null || v.isEmpty
                       ? "Please enter clinic name"
                       : null,
                 ),
                 const SizedBox(height: 10),
-
-                // 🏠 Clinic Address
                 _buildTextFormField(
                   "Clinic Address",
-                  addressController,
-                  onChanged: (v) => controller.clinicAddress.value = v,
+                  controller.addressController,
                   validator: (v) => v == null || v.isEmpty
                       ? "Please enter clinic address"
                       : null,
                 ),
                 const SizedBox(height: 10),
-
-                // 📞 Contact Number
                 _buildTextFormField(
                   "Contact Number",
-                  contactController,
+                  controller.contactController,
                   keyboardType: TextInputType.phone,
-                  onChanged: (v) => controller.clinicContact.value = v,
                   validator: (v) {
-                    if (v == null || v.isEmpty) {
+                    if (v == null || v.isEmpty)
                       return "Please enter contact number";
-                    } else if (!RegExp(r'^\+?[0-9]{7,15}$').hasMatch(v)) {
+                    if (!RegExp(r'^\+?[0-9]{7,15}$').hasMatch(v)) {
                       return "Please enter a valid phone number";
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 10),
-
-                // 🌆 City / Location
                 _buildTextFormField(
                   "City / Location",
-                  cityController,
-                  onChanged: (v) => controller.clinicCity.value = v,
+                  controller.cityController,
                   validator: (v) => v == null || v.isEmpty
                       ? "Please enter city/location"
                       : null,
                 ),
                 const SizedBox(height: 10),
-
-                // 📝 Notes (optional)
                 _buildTextFormField(
                   "Notes (optional)",
-                  notesController,
+                  controller.notesController,
                   maxLines: 3,
-                  onChanged: (v) => controller.clinicNotes.value = v,
                 ),
-                const SizedBox(height: 20),
 
-                // 🕒 Weekly Timings
+                const SizedBox(height: 20),
                 Text(
                   "Weekly Timings",
                   style: TextStyle(
@@ -118,7 +91,6 @@ class DoctorAddClinicPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-
                 Obx(
                   () => Column(
                     children: controller.weeklyTimings.keys
@@ -126,9 +98,7 @@ class DoctorAddClinicPage extends StatelessWidget {
                         .toList(),
                   ),
                 ),
-
                 const SizedBox(height: 30),
-
                 Center(
                   child: ButtonWidget(
                     text: "Save Clinic",
@@ -159,14 +129,12 @@ class DoctorAddClinicPage extends StatelessWidget {
     TextEditingController controller, {
     int maxLines = 1,
     TextInputType keyboardType = TextInputType.text,
-    required Function(String) onChanged,
     String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
       keyboardType: keyboardType,
-      onChanged: onChanged,
       validator: validator,
       decoration: InputDecoration(
         labelText: label,

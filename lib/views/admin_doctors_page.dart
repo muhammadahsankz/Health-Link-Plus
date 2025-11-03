@@ -13,12 +13,22 @@ class AdminDoctorsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // Search Field
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: TextField(
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Doctors",
+            style: TextStyle(
+              color: AppColors.blue,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Search Field
+          TextField(
             controller: searchController,
             decoration: InputDecoration(
               hintText: "Search doctors by name",
@@ -33,30 +43,30 @@ class AdminDoctorsPage extends StatelessWidget {
               controller.filterDoctors(query);
             },
           ),
-        ),
+          const SizedBox(height: 10),
+          // List of doctors
+          Expanded(
+            child: Obx(() {
+              if (controller.isLoading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-        // List of doctors
-        Expanded(
-          child: Obx(() {
-            if (controller.isLoading.value) {
-              return const Center(child: CircularProgressIndicator());
-            }
+              if (controller.filteredDoctors.isEmpty) {
+                return _buildEmptyState("No doctors found");
+              }
 
-            if (controller.filteredDoctors.isEmpty) {
-              return _buildEmptyState("No doctors found");
-            }
-
-            return ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: controller.filteredDoctors.length,
-              itemBuilder: (context, index) {
-                final doctor = controller.filteredDoctors[index];
-                return _buildDoctorCard(doctor);
-              },
-            );
-          }),
-        ),
-      ],
+              return ListView.builder(
+                // padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: controller.filteredDoctors.length,
+                itemBuilder: (context, index) {
+                  final doctor = controller.filteredDoctors[index];
+                  return _buildDoctorCard(doctor);
+                },
+              );
+            }),
+          ),
+        ],
+      ),
     );
   }
 

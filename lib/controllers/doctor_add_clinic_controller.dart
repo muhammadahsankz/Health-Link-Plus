@@ -7,6 +7,7 @@ import 'package:health_link_plus/utils/app_urls.dart';
 import 'package:health_link_plus/widgets/toast_widget.dart';
 
 class DoctorAddClinicController extends GetxController {
+  // Rx values
   var clinicName = ''.obs;
   var clinicAddress = ''.obs;
   var clinicContact = ''.obs;
@@ -23,12 +24,39 @@ class DoctorAddClinicController extends GetxController {
     'Sunday': {'open': null, 'close': null},
   }.obs;
 
+  // Loading flags
   var isLoading = false.obs;
   var isFetching = false.obs;
+
+  // TextControllers
+  late TextEditingController nameController;
+  late TextEditingController addressController;
+  late TextEditingController contactController;
+  late TextEditingController cityController;
+  late TextEditingController notesController;
 
   @override
   void onInit() {
     super.onInit();
+
+    // Initialize controllers
+    nameController = TextEditingController();
+    addressController = TextEditingController();
+    contactController = TextEditingController();
+    cityController = TextEditingController();
+    notesController = TextEditingController();
+
+    // Listen to text changes to update Rx values
+    nameController.addListener(() => clinicName.value = nameController.text);
+    addressController.addListener(
+      () => clinicAddress.value = addressController.text,
+    );
+    contactController.addListener(
+      () => clinicContact.value = contactController.text,
+    );
+    cityController.addListener(() => clinicCity.value = cityController.text);
+    notesController.addListener(() => clinicNotes.value = notesController.text);
+
     fetchClinicDetails();
   }
 
@@ -57,6 +85,12 @@ class DoctorAddClinicController extends GetxController {
           clinicContact.value = clinic['clinicContact'] ?? '';
           clinicCity.value = clinic['clinicCity'] ?? '';
           clinicNotes.value = clinic['clinicNotes'] ?? '';
+
+          nameController.text = clinicName.value;
+          addressController.text = clinicAddress.value;
+          contactController.text = clinicContact.value;
+          cityController.text = clinicCity.value;
+          notesController.text = clinicNotes.value;
 
           if (clinic['weeklyTimings'] != null) {
             clinic['weeklyTimings'].forEach((day, timings) {
@@ -87,7 +121,6 @@ class DoctorAddClinicController extends GetxController {
       isLoading.value = true;
       final doctorId = AuthHelper.getUserId();
 
-      // Convert weekly timings to a plain map
       final Map<String, Map<String, String?>> timingMap = {};
       weeklyTimings.forEach((day, value) {
         timingMap[day] = {
@@ -139,5 +172,15 @@ class DoctorAddClinicController extends GetxController {
     } finally {
       isLoading.value = false;
     }
+  }
+
+  @override
+  void onClose() {
+    nameController.dispose();
+    addressController.dispose();
+    contactController.dispose();
+    cityController.dispose();
+    notesController.dispose();
+    super.onClose();
   }
 }

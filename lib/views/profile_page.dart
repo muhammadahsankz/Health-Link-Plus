@@ -25,27 +25,28 @@ class ProfilePage extends StatelessWidget {
                 "Profile",
                 style: TextStyle(
                   color: AppColors.blueAccent,
-                  fontSize: 20,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           Center(
             child: Container(
               padding: const EdgeInsets.all(24),
               margin: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: AppColors.white,
+                // color: Colors.grey.shade200,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
-                  ),
-                ],
+                border: Border.all(color: Colors.grey),
+                // boxShadow: const [
+                //   BoxShadow(
+                //     color: Colors.black12,
+                //     blurRadius: 8,
+                //     offset: Offset(0, 4),
+                //   ),
+                // ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,

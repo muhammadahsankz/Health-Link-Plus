@@ -11,7 +11,6 @@ class DoctorCompleteYourProfilePage extends StatelessWidget {
     DoctorCompleteProfileController(),
   );
   final _formKey = GlobalKey<FormState>();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,73 +19,106 @@ class DoctorCompleteYourProfilePage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
-          child: Form(
-            key: _formKey,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [
-                  BoxShadow(color: Colors.black12, blurRadius: 8),
-                ],
-              ),
+        return SafeArea(
+          child: SingleChildScrollView(
+            // ✅ makes the whole page scrollable
+            child: Padding(
+              padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _sectionTitle("Professional Information"),
-                  const SizedBox(height: 12),
-                  _buildTextField("Specialization", controller.specialization),
-                  const SizedBox(height: 12),
-                  _buildTextField(
-                    "Qualifications (e.g. MBBS, FCPS)",
-                    controller.qualifications,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildTextField(
-                    "Years of Experience",
-                    controller.experience,
-                    keyboardType: TextInputType.number,
-                  ),
-
-                  const SizedBox(height: 20),
-                  _sectionTitle("Personal Information"),
-                  const SizedBox(height: 12),
-                  _buildTextField(
-                    "Phone Number",
-                    controller.phone,
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildTextField(
-                    "Age",
-                    controller.age,
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildGenderDropdown(),
-
-                  const SizedBox(height: 20),
-                  _sectionTitle("About You"),
-                  const SizedBox(height: 12),
-                  _buildMultilineTextField(
-                    "Short Bio (Describe your background, experience, and expertise)",
-                    controller.bio,
-                  ),
-
-                  const SizedBox(height: 30),
-                  Center(
-                    child: ButtonWidget(
-                      text: "Save Profile",
-                      isLoading: controller.isLoading,
-                      onPressed: () async {
-                        if (_formKey.currentState!.validate()) {
-                          await controller.saveProfileToServer();
-                        }
-                      },
+                  Text(
+                    "Complete Your Profile",
+                    style: TextStyle(
+                      color: AppColors.blue,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
                     ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // ✅ make form adaptive to screen
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: MediaQuery.of(context).size.height * 0.7,
+                        ),
+                        child: Form(
+                          key: _formKey,
+                          child: Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: const [
+                                BoxShadow(color: Colors.black12, blurRadius: 8),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _sectionTitle("Professional Information"),
+                                const SizedBox(height: 12),
+                                _buildTextField(
+                                  "Specialization",
+                                  controller.specializationController,
+                                ),
+                                const SizedBox(height: 12),
+                                _buildTextField(
+                                  "Qualifications (e.g. MBBS, FCPS)",
+                                  controller.qualificationsController,
+                                ),
+                                const SizedBox(height: 12),
+                                _buildTextField(
+                                  "Years of Experience",
+                                  controller.experienceController,
+                                  keyboardType: TextInputType.number,
+                                ),
+
+                                const SizedBox(height: 20),
+                                _sectionTitle("Personal Information"),
+                                const SizedBox(height: 12),
+                                _buildTextField(
+                                  "Phone Number",
+                                  controller.phoneController,
+                                  keyboardType: TextInputType.phone,
+                                ),
+                                const SizedBox(height: 12),
+                                _buildTextField(
+                                  "Age",
+                                  controller.ageController,
+                                  keyboardType: TextInputType.number,
+                                ),
+                                const SizedBox(height: 12),
+                                _buildGenderDropdown(),
+
+                                const SizedBox(height: 20),
+                                _sectionTitle("About You"),
+                                const SizedBox(height: 12),
+                                _buildMultilineTextField(
+                                  "Short Bio (Describe your background, experience, and expertise)",
+                                  controller.bioController,
+                                ),
+
+                                const SizedBox(height: 30),
+                                Center(
+                                  child: ButtonWidget(
+                                    text: "Save Profile",
+                                    isLoading: controller.isLoading,
+                                    onPressed: () async {
+                                      if (_formKey.currentState!.validate()) {
+                                        await controller.saveProfileToServer();
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -99,41 +131,32 @@ class DoctorCompleteYourProfilePage extends StatelessWidget {
 
   Widget _buildTextField(
     String label,
-    RxString value, {
+    TextEditingController controller, {
     TextInputType keyboardType = TextInputType.text,
   }) {
-    final textController = TextEditingController(text: value.value);
-    textController.selection = TextSelection.fromPosition(
-      TextPosition(offset: textController.text.length),
-    );
-
-    return Obx(
-      () => TextFormField(
-        controller: textController..text = value.value,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        onChanged: (val) => value.value = val,
-        validator: (val) =>
-            val == null || val.isEmpty ? "Please enter $label" : null,
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
+      validator: (val) =>
+          val == null || val.isEmpty ? "Please enter $label" : null,
     );
   }
 
-  Widget _buildMultilineTextField(String label, RxString value) {
-    final textController = TextEditingController(text: value.value);
-    return Obx(
-      () => TextFormField(
-        controller: textController..text = value.value,
-        maxLines: 4,
-        decoration: InputDecoration(
-          labelText: label,
-          alignLabelWithHint: true,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        onChanged: (val) => value.value = val,
+  Widget _buildMultilineTextField(
+    String label,
+    TextEditingController controller,
+  ) {
+    return TextFormField(
+      controller: controller,
+      maxLines: 4,
+      decoration: InputDecoration(
+        labelText: label,
+        alignLabelWithHint: true,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

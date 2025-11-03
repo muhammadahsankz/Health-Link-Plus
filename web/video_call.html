@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <script src="https://download.agora.io/sdk/release/AgoraRTC_N.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background: #0d1117;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        #videos {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        #local-player,
+        .remote-player {
+            flex: 1;
+            min-width: 45%;
+            height: 300px;
+            background: #222;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        #controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            background: #111;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        button.leave {
+            background: #dc3545;
+        }
+
+        button.leave:hover {
+            background: #a71d2a;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="videos">
+        <div id="local-player"></div>
+        <div id="remote-playerlist"></div>
+    </div>
+    <div id="controls">
+        <button id="btn-mic">🎤 Mute Mic</button>
+        <button id="btn-video">🎥 Stop Video</button>
+        <button id="btn-full">⛶ Fullscreen</button>
+        <button id="btn-leave" class="leave">🚪 Leave</button>
+    </div>
+
+    <script>
+        const queryParams = new URLSearchParams(window.location.search);
+        const APP_ID = "6c9a478092dc44668b300b1fd9140983";
+        const CHANNEL = queryParams.get("123") || "defaultChannel";
+        const UID = parseInt(queryParams.get("uid")) || Math.floor(Math.random() * 10000);
+        const TOKEN = null; // use token in production
+
+        const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+        let localTracks = [];
+        let isFullScreen = false;
+
+        async function startCall() {
+            try {
+                localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
+                await client.join(APP_ID, CHANNEL, TOKEN, UID);
+                localTracks[1].play("local-player");
+
+                client.on("user-published", async (user, mediaType) => {
+                    await client.subscribe(user, mediaType);
+                    if (mediaType === "video") {
+                        let remoteDiv = document.getElementById(user.uid);
+                        if (!remoteDiv) {
+                            remoteDiv = document.createElement("div");
+                            remoteDiv.id = user.uid;
+                            remoteDiv.classList.add("remote-player");
+                            document.getElementById("remote-playerlist").append(remoteDiv);
+                        }
+                        user.videoTrack.play(remoteDiv);
+                    }
+                    if (mediaType === "audio") user.audioTrack.play();
+                });
+
+                client.on("user-unpublished", (user) => {
+                    const remoteDiv = document.getElementById(user.uid);
+                    if (remoteDiv) remoteDiv.remove();
+                });
+            } catch (err) {
+                console.error("Agora error:", err);
+            }
+        }
+
+        // 🎤 Mute mic toggle
+        document.getElementById("btn-mic").onclick = () => {
+            if (!localTracks.length) return;
+            const micTrack = localTracks[0];
+            micTrack.setEnabled(!micTrack.enabled);
+            document.getElementById("btn-mic").innerText = micTrack.enabled
+                ? "🎤 Mute Mic"
+                : "🔇 Unmute Mic";
+        };
+
+        // 🎥 Video toggle
+        document.getElementById("btn-video").onclick = () => {
+            if (!localTracks.length) return;
+            const camTrack = localTracks[1];
+            camTrack.setEnabled(!camTrack.enabled);
+            document.getElementById("btn-video").innerText = camTrack.enabled
+                ? "🎥 Stop Video"
+                : "📷 Start Video";
+        };
+
+        // ⛶ Fullscreen toggle
+        document.getElementById("btn-full").onclick = () => {
+            const videosDiv = document.getElementById("videos");
+            if (!isFullScreen) {
+                videosDiv.requestFullscreen();
+                document.getElementById("btn-full").innerText = "🗗 Exit Fullscreen";
+            } else {
+                document.exitFullscreen();
+                document.getElementById("btn-full").innerText = "⛶ Fullscreen";
+            }
+            isFullScreen = !isFullScreen;
+        };
+
+        // 🚪 Leave button
+        document.getElementById("btn-leave").onclick = async () => {
+            for (const track of localTracks) {
+                track.stop();
+                track.close();
+            }
+            await client.leave();
+            window.parent.postMessage("exitCall", "*"); // Notify Flutter
+        };
+
+        startCall();
+    </script>
+</body>
+
+</html>
